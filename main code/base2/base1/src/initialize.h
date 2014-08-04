@@ -198,6 +198,7 @@ void TimerD0_init(void);
 
 void SPI_Init(void);
 
+void USARTE0_init(void);
 void USARTF0_init(void);
 void USARTF1_init(void);
 

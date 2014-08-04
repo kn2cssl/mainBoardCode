@@ -8,8 +8,6 @@
 
 #include "initialize.h"
 
-
-
 //Motor_Param M0,M1,M2,M3;
 
 void En_RC32M(void)
@@ -30,7 +28,7 @@ void PORT_init(void)
 {
 	
 	PORTB_DIRSET = KCK_Charge_PIN_bm;
-	PORTC_DIRSET = KCK_Chip_PIN_bm | KCK_DIR_PIN_bm | Buzzer_PIN_bm | PIN2_bm ;
+	PORTC_DIRSET = KCK_Chip_PIN_bm | KCK_DIR_PIN_bm | Buzzer_PIN_bm | PIN2_bm;
 	PORTC_PIN3CTRL=PORT_ISC_BOTHEDGES_gc;
 	PORTC_INTCTRL = PORT_INT0LVL_LO_gc;
 	PORTC_INT0MASK = PIN3_bm;
@@ -42,7 +40,7 @@ void PORT_init(void)
 	//PORTD_INT0MASK = KCK_Sens1_PIN_bm | KCK_Sens2_PIN_bm;
 		
 	
-	PORTE_DIRSET = NRF24L01_L_CE_LINE | NRF24L01_L_CS_LINE | NRF24L01_L_MOSI_LINE | NRF24L01_L_SCK_LINE; // wireless module & programmer data
+	PORTE_DIRSET = NRF24L01_L_CE_LINE | NRF24L01_L_CS_LINE | NRF24L01_L_MOSI_LINE | NRF24L01_L_SCK_LINE |PIN3_bm; // wireless module & programmer data
 	PORTE_PIN0CTRL |= PORT_ISC_FALLING_gc;
 	PORTE_INTCTRL |= PORT_INT0LVL_LO_gc;
 	PORTE_INT0MASK |= PIN0_bm;
@@ -58,8 +56,8 @@ void PORT_init(void)
 	//PORTF_INT0MASK = Menu_Cancel_PIN_bm | Menu_PIN3_bm | Menu_PIN2_bm | Menu_PIN1_bm | Menu_PIN0_bm;
 	PORTF_INT0MASK = Menu_Cancel_PIN_bm;
    
-   PORTF_DIRSET = PIN3_bm;
-   PORTF_OUTSET = PIN3_bm;
+   PORTF_DIRSET = PIN3_bm|PIN7_bm ;
+   PORTF_OUTSET = PIN3_bm|PIN7_bm;
    
    PORTK_DIR = 0xFF;//SegR
    PORTJ_DIR = 0xFF;//SegL
@@ -112,7 +110,18 @@ void SPI_Init(void)
 	 spi_enable(&NRF24L01_L_SPI);
 }
 
-
+#define USARTE0_conf USARTE0
+#define USARTE0_BUADRATE 9600
+void USARTE0_init(void)
+{
+	usart_set_mode(&USARTE0_conf,USART_CMODE_ASYNCHRONOUS_gc);
+	usart_format_set(&USARTE0_conf,USART_CHSIZE_8BIT_gc,USART_PMODE_DISABLED_gc,false);
+	usart_set_rx_interrupt_level(&USARTE0_conf,USART_INT_LVL_MED);
+	//usart_set_dre_interrupt_level(&USARTE0_conf,USART_INT_LVL_LO);
+	usart_set_baudrate(&USARTE0_conf,USARTE0_BUADRATE,F_CPU);
+	usart_tx_enable(&USARTE0_conf);
+	//usart_rx_enable(&USARTE0_conf);
+}
 
 #define USARTF0_conf USARTF0
 #define USARTF0_BUADRATE 9600
@@ -127,17 +136,18 @@ void USARTF0_init(void)
 	usart_rx_enable(&USARTF0_conf);
 }
 
+
 #define USARTF1_conf USARTF1
 #define USARTF1_BUADRATE 9600
 void USARTF1_init(void)
 {
 	usart_set_mode(&USARTF1_conf,USART_CMODE_ASYNCHRONOUS_gc);
 	usart_format_set(&USARTF1_conf,USART_CHSIZE_8BIT_gc,USART_PMODE_DISABLED_gc,false);
-	//usart_set_rx_interrupt_level(&USARTF1_conf,USART_INT_LVL_MED);
+	usart_set_rx_interrupt_level(&USARTF1_conf,USART_INT_LVL_MED);
 	//usart_set_dre_interrupt_level(&USARTF1_conf,USART_INT_LVL_LO);
 	usart_set_baudrate(&USARTF1_conf,USARTF1_BUADRATE,F_CPU);
 	usart_tx_enable(&USARTF1_conf);
-	//usart_rx_enable(&USARTF1_conf);
+	usart_rx_enable(&USARTF1_conf);
 }
 
 //KCK_CAP_VFB   -----> B7
