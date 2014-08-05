@@ -184,22 +184,24 @@ int main (void)
             kd = (float)Robot_D[RobotID].D/100.0;
             ctrlflg = 0;
 			
-			M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.HSpeed,&M0.Err,&M0.d,&M0.i);
-			M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.HSpeed,&M1.Err,&M1.d,&M1.i);
-			M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.HSpeed,&M2.Err,&M2.d,&M2.i);
+			//pid : hall 
+			//M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.HSpeed,&M0.Err,&M0.d,&M0.i);
+			//M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.HSpeed,&M1.Err,&M1.d,&M1.i);
+			//M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.HSpeed,&M2.Err,&M2.d,&M2.i);
 			M3.PWM=PD_CTRL((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8)),M3.HSpeed,&M3.Err,&M3.d,&M3.i);
 			
-            //M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.Speed,&M0.Err,&M0.d,&M0.i);
-            //M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.Speed,&M1.Err,&M1.d,&M1.i);
-            //M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.Speed,&M2.Err,&M2.d,&M2.i);
+			//pid : encoder
+            M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.Speed,&M0.Err,&M0.d,&M0.i);
+            M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.Speed,&M1.Err,&M1.d,&M1.i);
+            M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.Speed,&M2.Err,&M2.d,&M2.i);
             //M3.PWM=PD_CTRL((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8)),M3.Speed,&M3.Err,&M3.d,&M3.i);
 			
             usart_putchar(&USARTF0,'*');
             usart_putchar(&USARTF0,'~');
-            usart_putchar(&USARTF0,50);//M0.PWM);//
-            usart_putchar(&USARTF0,50);//M1.PWM);//
-            usart_putchar(&USARTF0,50);//M2.PWM);
-            usart_putchar(&USARTF0,50);//M3.PWM);
+            usart_putchar(&USARTF0,M0.PWM);//M0.PWM);//
+            usart_putchar(&USARTF0,M1.PWM);//M1.PWM);//
+            usart_putchar(&USARTF0,M2.PWM);//M2.PWM);
+            usart_putchar(&USARTF0,M3.PWM);//M3.PWM);
 			switch (driverTGL)
 			{
 				case 0:
@@ -493,7 +495,7 @@ void disp_ans(void)
 		
 		uint8_t count1;
 		char str1[200];
-		count1 = sprintf(str1,"%d,%d\r",M3.HSpeed,M3.Speed);//,driverTGL*100+400);//,buff_reply);
+		count1 = sprintf(str1,"%d,%d,%d,%d\r",M3.HSpeed,M2.HSpeed,M1.HSpeed,M0.HSpeed);//,driverTGL*100+400);//,buff_reply);
 		
 		for (uint8_t i=0;i<count1;i++)
 		{
