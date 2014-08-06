@@ -16,7 +16,7 @@ $RECYCLE.BIN/
 *.atsln
 *.atsuo
 *.cproj
-
+*.csv
 
 # =========================
 # Operating System Files
@@ -41,3 +41,7 @@ Icon
 .Trashes
 
 src/asf/
+base1/*.atsln
+base1/*.atsuo
+base1/*.cproj
+base1/*.csv
