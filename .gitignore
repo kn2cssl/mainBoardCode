@@ -45,3 +45,8 @@ base2/*.atsln
 base2/*.atsuo
 base2/*.cproj
 base2/*.csv
+
+base1/*.atsln
+base1/*.atsuo
+base1/*.cproj
+base1/*.csv
