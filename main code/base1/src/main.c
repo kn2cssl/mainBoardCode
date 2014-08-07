@@ -31,6 +31,7 @@ void get_MS(char);
 /* Global variables */
 int flg_reply=0;
 int cnt=0;
+
 int flg=0;
 int flg1=0;
 int adc =0;
@@ -81,6 +82,7 @@ inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int
 struct _Motor_Param
 {
     int Encoder;
+	int Hall;
     int Speed;
 	int HSpeed;
     int Speed_past;
@@ -476,7 +478,7 @@ void get_MS(char rx)
 
 }
 int ask_cnt=0;
-
+int buff_reply_tmp0;
 int buff_reply_tmp;
 int buff_p_temp;
 int buff_i_temp;
@@ -555,22 +557,39 @@ ISR(USARTF0_RXC_vect)
         //ask_cnt++;
         //break;
 
-
-    case 4:
-        if (data=='#')
-        {
-            //LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
-            buff_reply = buff_reply_tmp;
-            reply2 = reply2_tmp;
-            //buff_p = buff_p_temp;
-            //buff_i = buff_i_temp;
-            //buff_d = buff_d_temp;
-            //buff_u = buff_u_temp;
-
-
-            //flg_reply=0;
-            ask_cnt=0;
-        }
+     		case 4:
+     		if (data=='#')
+     		{
+	     		
+	     		
+	     		switch(reply2_tmp)
+	     		{
+		     		case 2:
+		     		M2.Hall=buff_reply_tmp0;
+		     		break;
+		     		
+		     		case 3:
+		     		M3.Hall=buff_reply_tmp0;
+		     		break;
+	     		}
+	     		
+	     		buff_reply=buff_reply_tmp0;
+	     		reply2 = reply2_tmp;
+    //case 4:
+        //if (data=='#')
+        //{
+            ////LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+            //buff_reply = buff_reply_tmp;
+            //reply2 = reply2_tmp;
+            ////buff_p = buff_p_temp;
+            ////buff_i = buff_i_temp;
+            ////buff_d = buff_d_temp;
+            ////buff_u = buff_u_temp;
+//
+//
+            ////flg_reply=0;
+            //ask_cnt=0;
+        //}
         ask_cnt=0;
         break;
     }
@@ -619,3 +638,4 @@ inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int
     // direction =1;
 
 }
+
