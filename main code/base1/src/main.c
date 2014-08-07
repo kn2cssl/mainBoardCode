@@ -82,7 +82,9 @@ struct _Motor_Param
 {
     int Encoder;
     int Speed;
+	int HSpeed;
     int Speed_past;
+	int HSpeed_past;
     int Err,d,i;
     int Direction;
     char PWM
@@ -144,6 +146,20 @@ int main (void)
         asm("wdr");
         if (ctrlflg)
         {
+			//speed via hall
+			M0.HSpeed_past = M0.HSpeed; if (abs(M0.Hall-M0.HSpeed)<2000) M0.HSpeed = M0.Hall;// M0.Hall=0;
+			M0.HSpeed = M0.HSpeed_past + _FILTER_CONST*1*(M0.HSpeed - M0.HSpeed_past);
+			
+			M1.HSpeed_past = M1.HSpeed; if (abs(M1.Hall-M1.HSpeed)<2000) M1.HSpeed = M1.Hall;// M1.Hall=0;
+			M1.HSpeed = M1.HSpeed_past + _FILTER_CONST*1*(M1.HSpeed - M1.HSpeed_past);
+			
+			M2.HSpeed_past = M2.HSpeed; if (abs(M2.Hall-M2.HSpeed)<2000) M2.HSpeed = M2.Hall; //M2.Hall=0;
+			M2.HSpeed = M2.HSpeed_past + _FILTER_CONST*1*(M2.HSpeed - M2.HSpeed_past);
+			
+			M3.HSpeed_past = M3.HSpeed; if (abs(M3.Hall-M3.HSpeed)<2000) M3.HSpeed = M3.Hall;//M3.Hall=0;
+			M3.HSpeed = M3.HSpeed_past + _FILTER_CONST*1*(M3.HSpeed - M3.HSpeed_past);
+			//
+			// speed via encoder
             M0.Speed_past = M0.Speed; M0.Speed = M0.Encoder*15; M0.Encoder = 0;
             M0.Speed = M0.Speed_past +_FILTER_CONST*(M0.Speed - M0.Speed_past);
             M1.Speed_past = M1.Speed; M1.Speed = M1.Encoder*15; M1.Encoder = 0;
@@ -156,6 +172,14 @@ int main (void)
             ki = (float)Robot_D[RobotID].I/100.0;
             kd = (float)Robot_D[RobotID].D/100.0;
             ctrlflg = 0;
+			
+				//pid : hall
+				//M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.HSpeed,&M0.Err,&M0.d,&M0.i);
+				//M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.HSpeed,&M1.Err,&M1.d,&M1.i);
+				//M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.HSpeed,&M2.Err,&M2.d,&M2.i);
+				M3.PWM=PD_CTRL((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8)),M3.HSpeed,&M3.Err,&M3.d,&M3.i);
+				
+			//pid : encoder	
             M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.Speed,&M0.Err,&M0.d,&M0.i);
             M1.PWM=PD_CTRL(Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8),M1.Speed,&M1.Err,&M1.d,&M1.i);
             M2.PWM=PD_CTRL(Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8),M2.Speed,&M2.Err,&M2.d,&M2.i);
