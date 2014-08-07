@@ -12,14 +12,15 @@
 *.srec
 *.mk
 *.S
+*.atsuo
 Makefile
 TcfTransactionLog.csv
 
 ##########################
 ## C
 ##########################
-# Object files
 
+# Object files
 *.o
 *.ko
 *.obj
