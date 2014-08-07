@@ -37,6 +37,7 @@ int adc =0;
 int count=0;
 char rx[15];
 char buff[2];
+int speed=0;
 
 int i=0;
 
@@ -170,10 +171,16 @@ int main (void)
 
             adc = adc_get_unsigned_result(&ADCA,ADC_CH0);
 
-            if (adc<=1240)
-            {
-                Buzzer_PORT.OUTSET = Buzzer_PIN_bm;//10.3 volt
-            }
+             if (adc<=1240)
+             {
+	             Buzzer_PORT.OUTSET = Buzzer_PIN_bm;//10.3 volt
+	              PORTC.OUTSET = PIN2_bm ;
+             }
+             else
+              {
+	              Buzzer_PORT.OUTCLR = Buzzer_PIN_bm;
+	              PORTC.OUTCLR = PIN2_bm ;
+              }
 
             LCDGotoXY(0,0);
             sprintf(str,"%3d,%3d",Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.PWM);
@@ -181,23 +188,25 @@ int main (void)
             LCDGotoXY(0,1);
             sprintf(str,"%4d",M0.Speed);
             LCDStringRam(str);
-            if (SW_TEST)//| (Robot_D[RobotID].KCK))
-            {
-                if (KCK_Sens2)
-                {
-                    flg=1;
-                }
-            }
+			
+			if ((Robot_D[RobotID].KCK))
+			{
+				speed=Robot_D[RobotID].KCK;
+			}
+			if ((Robot_D[RobotID].CHP))
+			{
+				if (KCK_Sens2)
+				{
+					// flg1=1;
+				}
+			}
+			if(KCK_DSH_SW)
+			{	
+				KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_DIR(KCK_SPEED_LOW);
+				_delay_ms(100);
+				KCK_Speed_DIR(KCK_SPEED_OFF);
+			}
 
-            if (SW_TEST)//|(Robot_D[RobotID].CHP))
-            {
-                if (KCK_Sens2)
-                {
-                    flg1=1;
-                }
-            }
-
-            
             Buf_Tx_L[0] = ((Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8))*40)& 0x0FF;
             Buf_Tx_L[1] = (((Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8))*40)  >> 8) & 0x0FF;
             Buf_Tx_L[2] = ((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8))*40)& 0x0FF;
@@ -300,19 +309,20 @@ ISR(TCD0_OVF_vect)
 
     //timer for 1ms
     time_ms++;
-    if(flg)
+    if(speed)
     {
-
-        if(kck_time<3000){
-            kck_time++;KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_DIR(KCK_SPEED_HI);}
-        else {
-            KCK_Speed_DIR(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON); kck_time=0; flg=0;}
-
-    }
-    if(flg1)
-    {
-        if(kck_time<100){kck_time++; KCK_Speed_CHIP(KCK_SPEED_HI); KCK_Charge(KCK_CHARGE_OFF);}
-        else {KCK_Speed_CHIP(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON); kck_time=0; flg1=0;}
+	    kck_time++;
+	    if(kck_time<100)
+	    {
+		    KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_DIR(speed);
+		    KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_CHIP(speed);
+	    }
+	    else
+	    {
+		    if(kck_time>3000){kck_time=0; speed=0;}
+		    KCK_Speed_DIR(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON);
+		    KCK_Speed_CHIP(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON);
+	    }
     }
 
 
@@ -377,6 +387,25 @@ ISR(PORTQ_INT1_vect)
     M2.Encoder +=(PORTQ_IN&PIN2_bm)?-1:1;
 }
 
+ISR(PORTH_INT1_vect)
+{
+	////LED_White_PORT.OUTTGL=LED_White_PIN_bm;
+	//if(menu_time ==0 )
+	//{//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+	//menu_check_sw((Menu_Set),&Menu_Set_flg);
+	//menu_check_sw((Menu_Cancel),&Menu_Cancel_flg);
+	//}
+	//menu_time = 30000;
+	//
+	//Menu_Disp(Menu_Disp_ON);
+	//Menu_Display();
+	LED_Green_PORT.OUTTGL=LED_Green_PIN_bm;
+	//if(KCK_Sens2)
+	//{ // LED_Green_PORT.OUTTGL=LED_Green_PIN_bm;
+	//speed=255;
+	//
+	//}
+}
 ISR(PORTK_INT0_vect)
 {
     if(menu_time ==0 )
@@ -531,9 +560,8 @@ inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int
 
     int PID_Err=Setpoint-Feed_Back;
 
-    
-    int d=(PID_Err-(*PID_Err_past))*50 ;
-    d= (*d_past) +_FILTER_CONST*(d-(*d_past));
+	 int d=(PID_Err-(*PID_Err_past))*10 ;
+	  // d= (*d_past) +0.05*(d-(*d_past));
 
     d=(abs(d)<50)?0:d;
 
@@ -546,10 +574,10 @@ inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int
     (*i)=(*i)+(ki*PID_Err)*.020;
 
 
-    if ((*i)>80)
-        (*i)=80;
-    if ((*i)<-80)
-        (*i)=-80;
+     if ((*i)>120)
+      (*i)=120;
+     if ((*i)<-1200)
+      (*i)=-120;
 
     p=(p>127)?(127):p;
     p=(p<-127)?(-127):p;

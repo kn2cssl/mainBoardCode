@@ -15,8 +15,8 @@
 #define Menu_Disp_OFF 0x00
 #define Menu_Disp_ON 0xFF
 #define Menu_Disp(_A_) disp = _A_
-#define Menu_Cancel (Menu_PORT.IN & Menu_Cancel_PIN_bm) >> Menu_Cancel_PIN_bp
-#define Menu_Set ((PORTK_IN & Menu_Set_PIN_bm) >> Menu_Set_PIN_bp)
+#define Menu_Cancel (PORTF_IN & Menu_Cancel_PIN_bm) >> Menu_Cancel_PIN_bp
+#define Menu_Set ((PORTH_IN & Menu_Set_PIN_bm) >> Menu_Set_PIN_bp)
 #define Menu_Num ((((Menu_PORT.IN & Menu_PIN0_bm) >> Menu_PIN0_bp) << 2) |\
 				  (((Menu_PORT.IN & Menu_PIN2_bm) >> Menu_PIN2_bp) << 0) |\
 				  (((Menu_PORT.IN & Menu_PIN1_bm) >> Menu_PIN1_bp) << 3) |\
