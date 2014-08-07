@@ -589,7 +589,7 @@ ISR(USARTF0_RXC_vect)
 //
             ////flg_reply=0;
             //ask_cnt=0;
-        //}
+        }
         ask_cnt=0;
         break;
     }
