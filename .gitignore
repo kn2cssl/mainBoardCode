@@ -1,52 +1,46 @@
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
+##########################
+## Atmel Studio 6
+##########################
 
-# Folder config file
-Desktop.ini
+*.d
+*.eep
+*.elf
+*.hex
+*.lss
+*.map
+*.o
+*.srec
+*.mk
+*.S
+Makefile
+TcfTransactionLog.csv
 
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
+##########################
+## C
+##########################
+# Object files
 
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
-*.atsln
-*.atsuo
-*.cproj
-*.csv
+*.o
+*.ko
+*.obj
+*.elf
 
-# =========================
-# Operating System Files
-# =========================
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
 
-# OSX
-# =========================
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
 
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Icon must ends with two \r.
-Icon
-
-
-# Thumbnails
-._*
-
-# Files that might appear on external disk
-.Spotlight-V100
-.Trashes
-
-src/asf/
-base2/*.atsln
-base2/*.atsuo
-base2/*.cproj
-base2/*.csv
-
-base1/*.atsln
-base1/*.atsuo
-base1/*.cproj
-base1/*.csv
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
