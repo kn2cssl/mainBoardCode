@@ -21,6 +21,7 @@
 
 void send_ask(unsigned char);
 void get_MS(char);
+void disp_ans(void);
 
 /*! Defining an example slave address. */
 #define SLAVE1_ADDRESS    0
@@ -31,7 +32,6 @@ void get_MS(char);
 /* Global variables */
 int flg_reply=0;
 int cnt=0;
-
 int flg=0;
 int flg1=0;
 int adc =0;
@@ -72,7 +72,7 @@ uint16_t LED_Red_Speed,LED_Green_Speed,LED_White_Speed,Buzzer_Speed;
 int Seg[18] = {Segment_0,Segment_1,Segment_2,Segment_3,Segment_4,Segment_5,Segment_6,Segment_7,Segment_8,Segment_9,
                Segment_10,Segment_11,Segment_12,Segment_13,Segment_14,Segment_15,Segment_Dash};
 unsigned char Buf_Rx_L[_Buffer_Size] ;//= "00000000000000000000000000000000";
-char Buf_Tx_L[_Buffer_Size];// = "abcdefghijklmnopqrstuvwxyz012345";
+int Buf_Tx_L[_Buffer_Size];// = "abcdefghijklmnopqrstuvwxyz012345";
 char Address[_Address_Width] = { 0x11, 0x22, 0x33, 0x44, 0x55};//pipe0 {0xE7,0xE7,0xE7,0xE7,0xE7};////
 
 float kp,ki,kd;	
@@ -170,22 +170,25 @@ int main (void)
             M2.Speed = M2.Speed_past +_FILTER_CONST*(M2.Speed - M2.Speed_past);
             M3.Speed_past = M3.Speed; M3.Speed = M3.Encoder*15; M3.Encoder = 0;
             M3.Speed = M3.Speed_past +_FILTER_CONST*(M3.Speed - M3.Speed_past);
-            kp = (float)Robot_D[RobotID].P/100.0;
-            ki = (float)Robot_D[RobotID].I/100.0;
-            kd = (float)Robot_D[RobotID].D/100.0;
+            
+			disp_ans();
+			//ki=0.65,kp=0.15,kd=0.05         
+		    kp =(float)Robot_D[RobotID].P/100.0;
+            ki =(float)Robot_D[RobotID].I/100.0;
+            kd =(float)Robot_D[RobotID].D/100.0;
             ctrlflg = 0;
 			
-				//pid : hall
-				//M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.HSpeed,&M0.Err,&M0.d,&M0.i);
-				//M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.HSpeed,&M1.Err,&M1.d,&M1.i);
-				//M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.HSpeed,&M2.Err,&M2.d,&M2.i);
-				M3.PWM=PD_CTRL((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8)),M3.HSpeed,&M3.Err,&M3.d,&M3.i);
+			//pid : hall
+			//M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.HSpeed,&M0.Err,&M0.d,&M0.i);
+			//M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.HSpeed,&M1.Err,&M1.d,&M1.i);
+			//M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.HSpeed,&M2.Err,&M2.d,&M2.i);
+			M3.PWM=PD_CTRL(0,M3.HSpeed,&M3.Err,&M3.d,&M3.i);//(Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))
 				
 			//pid : encoder	
             M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.Speed,&M0.Err,&M0.d,&M0.i);
             M1.PWM=PD_CTRL(Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8),M1.Speed,&M1.Err,&M1.d,&M1.i);
             M2.PWM=PD_CTRL(Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8),M2.Speed,&M2.Err,&M2.d,&M2.i);
-            M3.PWM=PD_CTRL(Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8),M3.Speed,&M3.Err,&M3.d,&M3.i);
+            //M3.PWM=PD_CTRL(Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8),M3.Speed,&M3.Err,&M3.d,&M3.i);
 
             usart_putchar(&USARTF0,'*');
             usart_putchar(&USARTF0,'~');
@@ -447,6 +450,14 @@ ISR(PORTK_INT0_vect)
 
 void disp_ans(void)
 {
+			uint8_t count1;
+			char str1[200];
+			count1 = sprintf(str1,"%d,%d,%d,%d\r",M3.Hall,M2.Speed,M1.Speed,M0.Speed);//,driverTGL*100+400);//,buff_reply);
+			
+			for (uint8_t i=0;i<count1;i++)
+			{
+				usart_putchar(&USARTE0,str1[i]);
+			}
 
 }
 
@@ -503,12 +514,12 @@ ISR(USARTF0_RXC_vect)
         break;
 
     case 1:
-        buff_reply_tmp=data&0x0ff;
+        buff_reply_tmp0=data&0x0ff;
         ask_cnt++;
         break;
 
     case 2:
-        buff_reply_tmp|=(data<<8)&0x0ff00;
+        buff_reply_tmp0|=(data<<8)&0x0ff00;
         ask_cnt++;
         break;
 

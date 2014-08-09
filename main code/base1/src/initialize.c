@@ -118,7 +118,7 @@ void SPI_Init(void)
 }
 
 #define USARTE0_conf USARTE0
-#define USARTE0_BUADRATE 19200
+#define USARTE0_BUADRATE 9600
 void USARTE0_init(void)
 {
 	usart_set_mode(&USARTE0_conf,USART_CMODE_ASYNCHRONOUS_gc);
