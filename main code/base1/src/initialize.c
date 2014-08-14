@@ -118,7 +118,7 @@ void SPI_Init(void)
 }
 
 #define USARTE0_conf USARTE0
-#define USARTE0_BUADRATE 19200
+#define USARTE0_BUADRATE 9600
 void USARTE0_init(void)
 {
 	usart_set_mode(&USARTE0_conf,USART_CMODE_ASYNCHRONOUS_gc);
@@ -150,11 +150,11 @@ void USARTF1_init(void)
 {
 	usart_set_mode(&USARTF1_conf,USART_CMODE_ASYNCHRONOUS_gc);
 	usart_format_set(&USARTF1_conf,USART_CHSIZE_8BIT_gc,USART_PMODE_DISABLED_gc,false);
-	//usart_set_rx_interrupt_level(&USARTF1_conf,USART_INT_LVL_MED);
+	usart_set_rx_interrupt_level(&USARTF1_conf,USART_INT_LVL_MED);
 	//usart_set_dre_interrupt_level(&USARTF1_conf,USART_INT_LVL_LO);
 	usart_set_baudrate(&USARTF1_conf,USARTF1_BUADRATE,F_CPU);
 	usart_tx_enable(&USARTF1_conf);
-	//usart_rx_enable(&USARTF1_conf);
+	usart_rx_enable(&USARTF1_conf);
 }
 
 //KCK_CAP_VFB   -----> B7

@@ -21,6 +21,7 @@
 
 void send_ask(unsigned char);
 void get_MS(char);
+void disp_ans(void);
 
 /*! Defining an example slave address. */
 #define SLAVE1_ADDRESS    0
@@ -38,7 +39,7 @@ int count=0;
 char rx[15];
 char buff[2];
 int speed=0;
-
+int driverTGL;
 int i=0;
 
 int flg_off;
@@ -80,13 +81,18 @@ char ctrlflg=0;
 inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int *i);
 struct _Motor_Param
 {
-    int Encoder;
-    int Speed;
-    int Speed_past;
-    int Err,d,i;
-    int Direction;
-    char PWM
+	int Encoder;
+	int Hall;
+	int Speed;
+	int HSpeed;
+	int Speed_past;
+	int HSpeed_past;
+	int Err,d,i;
+	int Direction;
+	char PWM;
+	int RPM;
 };
+int driver_Data0,driver_Data1;
 typedef	struct _Motor_Param Motor_Param;
 Motor_Param M0,M1,M2,M3;
 int main (void)
@@ -101,7 +107,7 @@ int main (void)
     TimerC0_init();
     USARTF0_init();
     USARTF1_init();
-	USARTE0_init();
+    USARTE0_init();
     ADCA_init();
     LCDInit();
     //wdt_enable();
@@ -144,30 +150,49 @@ int main (void)
         asm("wdr");
         if (ctrlflg)
         {
-            M0.Speed_past = M0.Speed; M0.Speed = M0.Encoder*15; M0.Encoder = 0;
+            M0.Speed_past = M0.Speed; M0.Speed = M0.Encoder*7.5; M0.Encoder = 0;
             M0.Speed = M0.Speed_past +_FILTER_CONST*(M0.Speed - M0.Speed_past);
-            M1.Speed_past = M1.Speed; M1.Speed = M1.Encoder*15; M1.Encoder = 0;
+            M1.Speed_past = M1.Speed; M1.Speed = M1.Encoder*7.5; M1.Encoder = 0;
             M1.Speed = M1.Speed_past +_FILTER_CONST*(M1.Speed - M1.Speed_past);
-            M2.Speed_past = M2.Speed; M2.Speed = M2.Encoder*15; M2.Encoder = 0;
+            M2.Speed_past = M2.Speed; M2.Speed = M2.Encoder*7.5; M2.Encoder = 0;
             M2.Speed = M2.Speed_past +_FILTER_CONST*(M2.Speed - M2.Speed_past);
-            M3.Speed_past = M3.Speed; M3.Speed = M3.Encoder*15; M3.Encoder = 0;
-            M3.Speed = M3.Speed_past +_FILTER_CONST*(M3.Speed - M3.Speed_past);
-            kp = (float)Robot_D[RobotID].P/100.0;
-            ki = (float)Robot_D[RobotID].I/100.0;
-            kd = (float)Robot_D[RobotID].D/100.0;
-            ctrlflg = 0;
-            M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.Speed,&M0.Err,&M0.d,&M0.i);
-            M1.PWM=PD_CTRL(Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8),M1.Speed,&M1.Err,&M1.d,&M1.i);
-            M2.PWM=PD_CTRL(Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8),M2.Speed,&M2.Err,&M2.d,&M2.i);
-            M3.PWM=PD_CTRL(Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8),M3.Speed,&M3.Err,&M3.d,&M3.i);
+            M3.Speed_past = M3.Speed; M3.Speed = M3.Encoder*7.5; M3.Encoder = 0;
+            M3.Speed =( M3.Speed_past +_FILTER_CONST*(M3.Speed - M3.Speed_past));
+            disp_ans();
 
+            ctrlflg = 0;
+
+            Robot_D[RobotID].P=15;
+            Robot_D[RobotID].I=65;
+            Robot_D[RobotID].D=05;
+			
+			Robot_D[RobotID].M3b=0x00;
+            Robot_D[RobotID].M3a=0x00;          
+            char send_buff;
             usart_putchar(&USARTF0,'*');
             usart_putchar(&USARTF0,'~');
-            usart_putchar(&USARTF0,M0.PWM);
-            usart_putchar(&USARTF0,M1.PWM);
-            usart_putchar(&USARTF0,M2.PWM);
-            usart_putchar(&USARTF0,M3.PWM);
-            usart_putchar(&USARTF0,'#');
+            usart_putchar(&USARTF0,Robot_D[RobotID].M0b);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].M0a);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].M1b);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].M1a);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].M2b);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].M2a);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].M3b);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].M3a);//M3.PWM);
+            usart_putchar(&USARTF0,Robot_D[RobotID].P);
+            usart_putchar(&USARTF0,Robot_D[RobotID].I);
+            usart_putchar(&USARTF0,Robot_D[RobotID].D);
+                      
+            switch (driverTGL)
+            {
+	            case 0:
+	            usart_putchar(&USARTF0,'#');
+	            break;
+	                      
+	            case 1:
+	            usart_putchar(&USARTF0,'$');
+	            break;
+            }
 
             adc = adc_get_unsigned_result(&ADCA,ADC_CH0);
 
@@ -303,6 +328,8 @@ ISR(TCD0_OVF_vect)
     {
         //LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
         ctrlflg=1;
+		driverTGL++;
+		driverTGL=driverTGL%2;
         timectrl=0;
 		i++;
     }
@@ -421,7 +448,14 @@ ISR(PORTK_INT0_vect)
 
 void disp_ans(void)
 {
-
+	uint8_t count1;
+	char str1[200];
+	count1 = sprintf(str1,"%d,%d,%d\r",M3.HSpeed,driver_Data1,driver_Data0);//,driverTGL*100+400);//,buff_reply);
+			
+	for (uint8_t i=0;i<count1;i++)
+	{
+		usart_putchar(&USARTE0,str1[i]);
+	}
 }
 
 void send_ask(unsigned char ask)
@@ -451,105 +485,236 @@ void get_MS(char rx)
 {
 
 }
-int ask_cnt=0;
+int ask_cnt0=0;
+int ask_cnt1=0;
 
-int buff_reply_tmp;
+int buff_reply_tmp0;
+int buff_reply_tmp1;
 int buff_p_temp;
 int buff_i_temp;
 int buff_d_temp;
 int buff_u_temp;
 unsigned char reply2_tmp;
-ISR(USARTF0_RXC_vect)
+
+ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 {
-    //LED_Green_PORT.OUTSET = LED_Green_PIN_bm;
-    //char buff_reply [16];
-    unsigned char data;
-    data=USARTF0_DATA;
+	
+	//char buff_reply [16];
+	unsigned char data;
+	data=USARTF0_DATA;
+	
+	
 
-    //LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
+	switch(ask_cnt0)
+	{
+		case 0:
+		if (data== '*')
+		{
+			LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+			ask_cnt0++;
+		}
+		break;
 
-    switch(ask_cnt)
-    {
-    case 0:
-        if (data== '*')
-        {
-            ask_cnt++;}
-        break;
+		case 1:
+		buff_reply_tmp0=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
+		break;
 
-    case 1:
-        buff_reply_tmp=data&0x0ff;
-        ask_cnt++;
-        break;
+		case 2:
+		buff_reply_tmp0|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
+		break;
 
-    case 2:
-        buff_reply_tmp|=(data<<8)&0x0ff00;
-        ask_cnt++;
-        break;
+		case 3:
+		reply2_tmp = data;
+		ask_cnt0++;
+		break;
 
-    case 3:
-        reply2_tmp = data;
-        ask_cnt++;
-        break;
-
-        //case 4:
-        //buff_p_temp=data&0x0ff;
-        //ask_cnt++;
-        //break;
-        //
-        //case 5:
-        //buff_p_temp|=(data<<8)&0x0ff00;
-        //ask_cnt++;
-        //break;
-        //
-        //case 6:
-        //buff_i_temp=data&0x0ff;
-        //ask_cnt++;
-        //break;
-        //
-        //case 7:
-        //buff_i_temp|=(data<<8)&0x0ff00;
-        //ask_cnt++;
-        //break;
-        //
-        //case 8:
-        //buff_d_temp=data&0x0ff;
-        //ask_cnt++;
-        //break;
-        //
-        //case 9:
-        //buff_d_temp|=(data<<8)&0x0ff00;
-        //ask_cnt++;
-        //break;
-        //
-        //case 10:
-        //buff_u_temp=data&0x0ff;
-        //ask_cnt++;
-        //break;
-        //
-        //case 11:
-        //buff_u_temp|=(data<<8)&0x0ff00;
-        //ask_cnt++;
-        //break;
-
-
-    case 4:
-        if (data=='#')
-        {
-            //LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
-            buff_reply = buff_reply_tmp;
-            reply2 = reply2_tmp;
-            //buff_p = buff_p_temp;
-            //buff_i = buff_i_temp;
-            //buff_d = buff_d_temp;
-            //buff_u = buff_u_temp;
+		case 4:
+		buff_p_temp=data&0x0ff;
+		ask_cnt0++;
+		break;
+		
+		case 5:
+		buff_p_temp|=(data<<8)&0x0ff00;
+		ask_cnt0++;
+		break;
+		
+		case 6:
+		buff_i_temp=data&0x0ff;
+		ask_cnt0++;
+		break;
+		
+		case 7:
+		buff_i_temp|=(data<<8)&0x0ff00;
+		ask_cnt0++;
+		break;
+		
+		//case 8:
+		//buff_d_temp=data&0x0ff;
+		//ask_cnt++;
+		//break;
+		//
+		//case 9:
+		//buff_d_temp|=(data<<8)&0x0ff00;
+		//ask_cnt++;
+		//break;
+		//
+		//case 10:
+		//buff_u_temp=data&0x0ff;
+		//ask_cnt++;
+		//break;
+		//
+		//case 11:
+		//buff_u_temp|=(data<<8)&0x0ff00;
+		//ask_cnt++;
+		//break;
 
 
-            //flg_reply=0;
-            ask_cnt=0;
-        }
-        ask_cnt=0;
-        break;
-    }
+		case 8:
+		if (data=='#')
+		{
+			
+			
+			switch(reply2_tmp)
+			{
+				case 2:
+				M2.Hall=buff_reply_tmp0;
+				break;
+				
+				case 3:
+				M3.Hall=buff_reply_tmp0;
+				break;
+			}
+			driver_Data0=buff_p_temp;
+			driver_Data1=buff_i_temp;
+			buff_reply=buff_reply_tmp0;
+			reply2 = reply2_tmp;
+			
+			//buff_p = buff_p_temp;
+			//buff_i = buff_i_temp;
+			//buff_d = buff_d_temp;
+			//buff_u = buff_u_temp;
+
+
+			//flg_reply=0;
+			ask_cnt0=0;
+		}
+		ask_cnt0=0;
+		break;
+	}
+}
+
+
+ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
+{
+	
+	
+	unsigned char data;
+	data=USARTF1_DATA;
+
+	
+
+
+	switch(ask_cnt1)
+	{
+		case 0:
+		if (data== '*')
+		{
+			LED_Red_PORT.OUTTGL=LED_Red_PIN_bm;
+			ask_cnt1++;
+		}
+		break;
+
+		case 1:
+		buff_reply_tmp1=data&0x0ff;
+		ask_cnt1++;
+		break;
+
+		case 2:
+		buff_reply_tmp1|=(data<<8)&0x0ff00;
+		ask_cnt1++;
+		break;
+
+		case 3:
+		reply2_tmp = data;
+		ask_cnt1++;
+		break;
+
+		//case 4:
+		//buff_p_temp=data&0x0ff;
+		//ask_cnt++;
+		//break;
+		//
+		//case 5:
+		//buff_p_temp|=(data<<8)&0x0ff00;
+		//ask_cnt++;
+		//break;
+		//
+		//case 6:
+		//buff_i_temp=data&0x0ff;
+		//ask_cnt++;
+		//break;
+		//
+		//case 7:
+		//buff_i_temp|=(data<<8)&0x0ff00;
+		//ask_cnt++;
+		//break;
+		//
+		//case 8:
+		//buff_d_temp=data&0x0ff;
+		//ask_cnt++;
+		//break;
+		//
+		//case 9:
+		//buff_d_temp|=(data<<8)&0x0ff00;
+		//ask_cnt++;
+		//break;
+		//
+		//case 10:
+		//buff_u_temp=data&0x0ff;
+		//ask_cnt++;
+		//break;
+		//
+		//case 11:
+		//buff_u_temp|=(data<<8)&0x0ff00;
+		//ask_cnt++;
+		//break;
+
+
+		case 4:
+		if (data=='#')
+		{
+
+			switch(reply2_tmp)
+			{
+				case 0:
+				M0.Hall=buff_reply_tmp1;
+				break;
+				
+				case 1:
+				M1.Hall=buff_reply_tmp1;
+				break;
+			}
+			
+			//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+			buff_reply=buff_reply_tmp1;
+			reply2 = reply2_tmp;
+			//buff_p = buff_p_temp;
+			//buff_i = buff_i_temp;
+			//buff_d = buff_d_temp;
+			//buff_u = buff_u_temp;
+
+
+			//flg_reply=0;
+			ask_cnt1=0;
+		}
+		ask_cnt1=0;
+		break;
+	}
+	
 }
 
 inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int *i)
