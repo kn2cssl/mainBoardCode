@@ -77,7 +77,7 @@ char Address[_Address_Width] = { 0x11, 0x22, 0x33, 0x44, 0x55};//pipe0 {0xE7,0xE
 float kp,ki,kd;	
 char ctrlflg=0;
 
-inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int *i);
+inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,float *i);
 struct _Motor_Param
 {
     int Encoder;
@@ -552,10 +552,10 @@ ISR(USARTF0_RXC_vect)
     }
 }
 
-inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int *i)
+inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,float *i)
 {
 
-    Setpoint=(40*Setpoint);
+    //Setpoint=(40*Setpoint);
     
 
     int PID_Err=Setpoint-Feed_Back;
