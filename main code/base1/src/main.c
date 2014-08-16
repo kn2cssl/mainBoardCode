@@ -10,14 +10,16 @@
  * Atmel Software Framework (ASF).
  */
 #include <asf.h>
-#define F_CPU 32000000UL
+#include <stdlib.h>
 #include <util/delay.h>
+#define F_CPU 32000000UL
+
 #include "lcd.h"
 #include "initialize.h"
 #include "nrf24l01_L.h"
 #include "transmitter.h"
 #include "Menu.h"
-#include <stdlib.h>
+
 
 void send_ask(unsigned char);
 void get_MS(char);
@@ -36,11 +38,11 @@ int flg=0;
 int flg1=0;
 int adc =0;
 int count=0;
+int tmp;
+int master;
 char rx[15];
 char buff[2];
-int speed=0;
 int driverTGL;
-int i=0;
 
 int flg_off;
 char str[40];
@@ -72,29 +74,29 @@ uint16_t LED_Red_Speed,LED_Green_Speed,LED_White_Speed,Buzzer_Speed;
 int Seg[18] = {Segment_0,Segment_1,Segment_2,Segment_3,Segment_4,Segment_5,Segment_6,Segment_7,Segment_8,Segment_9,
                Segment_10,Segment_11,Segment_12,Segment_13,Segment_14,Segment_15,Segment_Dash};
 unsigned char Buf_Rx_L[_Buffer_Size] ;//= "00000000000000000000000000000000";
-char Buf_Tx_L[_Buffer_Size];// = "abcdefghijklmnopqrstuvwxyz012345";
+char Buf_Tx_L[_Buffer_Size] ;//= "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 char Address[_Address_Width] = { 0x11, 0x22, 0x33, 0x44, 0x55};//pipe0 {0xE7,0xE7,0xE7,0xE7,0xE7};////
 
 float kp,ki,kd;	
 char ctrlflg=0;
 
-inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int *i);
+inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,float *i);
 struct _Motor_Param
 {
-	int Encoder;
+    int Encoder;
 	int Hall;
-	int Speed;
+    int Speed;
 	int HSpeed;
-	int Speed_past;
+    int Speed_past;
 	int HSpeed_past;
-	int Err,d,i;
-	int Direction;
-	char PWM;
+    int Err,d,i;
+    int Direction;
+    char PWM;
 	int RPM;
 };
 int driver_Data0,driver_Data1;
 typedef	struct _Motor_Param Motor_Param;
-Motor_Param M0,M1,M2,M3;
+Motor_Param M0,M1,M2,M3,MH;
 int main (void)
 {
     En_RC32M();
@@ -107,7 +109,7 @@ int main (void)
     TimerC0_init();
     USARTF0_init();
     USARTF1_init();
-    USARTE0_init();
+	USARTE0_init();
     ADCA_init();
     LCDInit();
     //wdt_enable();
@@ -146,10 +148,12 @@ int main (void)
 
     // Insert application code here, after the board has been initialized.
     while(1)
-    {   
+    {
         asm("wdr");
         if (ctrlflg)
         {
+
+
             M0.Speed_past = M0.Speed; M0.Speed = M0.Encoder*7.5; M0.Encoder = 0;
             M0.Speed = M0.Speed_past +_FILTER_CONST*(M0.Speed - M0.Speed_past);
             M1.Speed_past = M1.Speed; M1.Speed = M1.Encoder*7.5; M1.Encoder = 0;
@@ -162,84 +166,86 @@ int main (void)
 
             ctrlflg = 0;
 
-            Robot_D[RobotID].P=15;
-            Robot_D[RobotID].I=65;
-            Robot_D[RobotID].D=05;
+			Robot_D[RobotID].P=15;
+			Robot_D[RobotID].I=65;
+			Robot_D[RobotID].D=05;
 			
-			Robot_D[RobotID].M3b=0x00;
-            Robot_D[RobotID].M3a=0x00;          
-            char send_buff;
+			//Robot_D[RobotID].M3b=0xff;
+			//Robot_D[RobotID].M3a=0x0f;
+			
+			char send_buff;
             usart_putchar(&USARTF0,'*');
             usart_putchar(&USARTF0,'~');
-            usart_putchar(&USARTF0,Robot_D[RobotID].M0b);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].M0a);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].M1b);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].M1a);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].M2b);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].M2a);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].M3b);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].M3a);//M3.PWM);
-            usart_putchar(&USARTF0,Robot_D[RobotID].P);
-            usart_putchar(&USARTF0,Robot_D[RobotID].I);
-            usart_putchar(&USARTF0,Robot_D[RobotID].D);
-                      
-            switch (driverTGL)
-            {
-	            case 0:
-	            usart_putchar(&USARTF0,'#');
-	            break;
-	                      
-	            case 1:
-	            usart_putchar(&USARTF0,'$');
-	            break;
-            }
-
+			usart_putchar(&USARTF0,Robot_D[RobotID].M0b);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M0a);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M1b);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M1a);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M2b);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M2a);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M3b);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M3a);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].P);
+			usart_putchar(&USARTF0,Robot_D[RobotID].I);
+			usart_putchar(&USARTF0,Robot_D[RobotID].D);
+			
+			switch (driverTGL)
+			{
+				case 0:
+				usart_putchar(&USARTF0,'#');
+				break;
+				
+				case 1:
+				usart_putchar(&USARTF0,'$');
+				break;
+			}
+            
+			
             adc = adc_get_unsigned_result(&ADCA,ADC_CH0);
 
-             if (adc<=1240)
-             {
-	             Buzzer_PORT.OUTSET = Buzzer_PIN_bm;//10.3 volt
-	              PORTC.OUTSET = PIN2_bm ;
-             }
-             else
-              {
-	              Buzzer_PORT.OUTCLR = Buzzer_PIN_bm;
-	              PORTC.OUTCLR = PIN2_bm ;
-              }
-
-            LCDGotoXY(0,0);
-            sprintf(str,"%3d,%3d",Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.PWM);
-            LCDStringRam(str);
-            LCDGotoXY(0,1);
-            sprintf(str,"%4d",M0.Speed);
-            LCDStringRam(str);
-			
-			if ((Robot_D[RobotID].KCK))
+            if (adc<=1240)
+            {
+                Buzzer_PORT.OUTSET = Buzzer_PIN_bm;//10.3 volt
+				PORTC.OUTSET=PIN2_bm;
+            }
+			else
 			{
-				speed=Robot_D[RobotID].KCK;
-			}
-			if ((Robot_D[RobotID].CHP))
-			{
-				if (KCK_Sens2)
-				{
-					// flg1=1;
-				}
-			}
-			if(KCK_DSH_SW)
-			{	
-				KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_DIR(KCK_SPEED_LOW);
-				_delay_ms(100);
-				KCK_Speed_DIR(KCK_SPEED_OFF);
+				Buzzer_PORT.OUTCLR = Buzzer_PIN_bm;//10.3 volt
+				PORTC.OUTCLR=PIN2_bm;
 			}
 
-            Buf_Tx_L[0] = ((Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8))*40)& 0x0FF;
-            Buf_Tx_L[1] = (((Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8))*40)  >> 8) & 0x0FF;
-            Buf_Tx_L[2] = ((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8))*40)& 0x0FF;
-            Buf_Tx_L[3] = (((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8))*40)  >> 8) & 0x0FF;
-            Buf_Tx_L[4] = ((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8))*40)& 0x0FF;
-            Buf_Tx_L[5] = (((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8))*40)  >> 8) & 0x0FF;
-            Buf_Tx_L[6] = ((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)& 0x0FF;
-            Buf_Tx_L[7] = (((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)  >> 8) & 0x0FF;
+            if (KCK_DSH_SW| (Robot_D[RobotID].KCK))
+            {
+	            if (KCK_Sens2)
+	            {
+		            flg=1;
+	            }
+            }
+
+            if ((Robot_D[RobotID].CHP))
+            {
+	            if (KCK_Sens2)
+	            {
+		            flg1=1;
+	            }
+            }
+
+            
+            //Buf_Tx_L[0] = ((Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8))*40)& 0x0FF;
+            //Buf_Tx_L[1] = (((Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8))*40)  >> 8) & 0x0FF;
+            //Buf_Tx_L[2] = ((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8))*40)& 0x0FF;
+            //Buf_Tx_L[3] = (((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8))*40)  >> 8) & 0x0FF;
+            //Buf_Tx_L[4] = ((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8))*40)& 0x0FF;
+            //Buf_Tx_L[5] = (((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8))*40)  >> 8) & 0x0FF;
+			//Buf_Tx_L[6] = ((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)& 0x0FF;
+			//Buf_Tx_L[7] = (((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)  >> 8) & 0x0FF;
+			Buf_Tx_L[0] = buff_reply & 0xFF;
+			Buf_Tx_L[1] = (buff_reply >> 8) & 0xFF;
+			Buf_Tx_L[2] = buff_reply & 0xFF;
+			Buf_Tx_L[3] = (buff_reply >> 8) & 0xFF;
+			Buf_Tx_L[4] = buff_reply & 0xFF;
+			Buf_Tx_L[5] = (buff_reply >> 8) & 0xFF;
+			Buf_Tx_L[6] = buff_reply & 0xFF;
+			Buf_Tx_L[7] = (buff_reply >> 8) & 0xFF;
             Buf_Tx_L[8] = M0.Speed & 0xFF;
             Buf_Tx_L[9] = (M0.Speed >> 8) & 0xFF;
             Buf_Tx_L[10] = M1.Speed & 0xFF;
@@ -249,15 +255,16 @@ int main (void)
             Buf_Tx_L[14] = M3.Speed & 0xFF;
             Buf_Tx_L[15] = (M3.Speed >> 8) & 0xFF;
             Buf_Tx_L[16] = adc >> 4;
-           
-			
-            NRF24L01_L_Write_TX_Buf(Buf_Tx_L,_Buffer_Size);
+            
+
+            //LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
+            NRF24L01_L_Write_TX_Buf(Buf_Tx_L, _Buffer_Size);
             NRF24L01_L_RF_TX();
-		
         }
         _delay_us(1);
-       // _delay_ms(100);
-        
+        //_delay_ms(100);
+        //LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
+
     }
 }
 
@@ -267,16 +274,11 @@ int main (void)
 ISR(PORTE_INT0_vect)////////////////////////////////////////PTX   IRQ Interrupt Pin
 {   
     uint8_t status_L = NRF24L01_L_WriteReg(W_REGISTER | STATUSe, _TX_DS|_MAX_RT|_RX_DR);
-	
     if((status_L & _RX_DR) == _RX_DR)
     {
         LED_White_PORT.OUTTGL = LED_White_PIN_bm;
         //1) read payload through SPI,
         NRF24L01_L_Read_RX_Buf(Buf_Rx_L, _Buffer_Size);
-		
-		for (uint8_t i=0;i<_Buffer_Size;i++)
-		{ usart_putchar(&USARTE0,Buf_Rx_L[i]);
-		}
 
         if(Buf_Rx_L[0] == RobotID)
         {   
@@ -318,12 +320,13 @@ ISR(PORTE_INT0_vect)////////////////////////////////////////PTX   IRQ Interrupt 
     }
 }
 
-
 char timectrl;
+
 ISR(TCD0_OVF_vect)
 {
     wdt_reset();
     timectrl++;
+
     if (timectrl>=20)
     {
         //LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
@@ -331,25 +334,24 @@ ISR(TCD0_OVF_vect)
 		driverTGL++;
 		driverTGL=driverTGL%2;
         timectrl=0;
-		i++;
+		
     }
 
     //timer for 1ms
     time_ms++;
-    if(speed)
+    if(flg)
     {
-	    kck_time++;
-	    if(kck_time<100)
-	    {
-		    KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_DIR(speed);
-		    KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_CHIP(speed);
-	    }
-	    else
-	    {
-		    if(kck_time>3000){kck_time=0; speed=0;}
-		    KCK_Speed_DIR(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON);
-		    KCK_Speed_CHIP(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON);
-	    }
+
+        if(kck_time<3000){
+            kck_time++;KCK_Charge(KCK_CHARGE_OFF); KCK_Speed_DIR(KCK_SPEED_HI);}
+        else {
+            KCK_Speed_DIR(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON); kck_time=0; flg=0;}
+
+    }
+    if(flg1)
+    {
+        if(kck_time<100){kck_time++; KCK_Speed_CHIP(KCK_SPEED_HI); KCK_Charge(KCK_CHARGE_OFF);}
+        else {KCK_Speed_CHIP(KCK_SPEED_OFF);KCK_Charge(KCK_CHARGE_ON); kck_time=0; flg1=0;}
     }
 
 
@@ -416,75 +418,83 @@ ISR(PORTQ_INT1_vect)
 
 ISR(PORTH_INT1_vect)
 {
-	////LED_White_PORT.OUTTGL=LED_White_PIN_bm;
-	//if(menu_time ==0 )
-	//{//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
-	//menu_check_sw((Menu_Set),&Menu_Set_flg);
-	//menu_check_sw((Menu_Cancel),&Menu_Cancel_flg);
-	//}
-	//menu_time = 30000;
-	//
-	//Menu_Disp(Menu_Disp_ON);
-	//Menu_Display();
-	//LED_Green_PORT.OUTTGL=LED_Green_PIN_bm;
-	//if(KCK_Sens2)
-	//{ // LED_Green_PORT.OUTTGL=LED_Green_PIN_bm;
-	//speed=255;
-	//
-	//}
+	//LED_White_PORT.OUTTGL=LED_White_PIN_bm;
+	if(menu_time ==0 )
+	{//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+		menu_check_sw((Menu_Set),&Menu_Set_flg);
+		menu_check_sw((Menu_Cancel),&Menu_Cancel_flg);
+	}
+	menu_time = 30000;
+
+	Menu_Disp(Menu_Disp_ON);
+	Menu_Display();
 }
+
 ISR(PORTK_INT0_vect)
 {
-    if(menu_time ==0 )
-    {
-        menu_check_sw((Menu_Set),&Menu_Set_flg);
-        menu_check_sw((Menu_Cancel),&Menu_Cancel_flg);
-    }
-    menu_time = 30000;
-
-    Menu_Disp(Menu_Disp_ON);
-    Menu_Display();
+	
 }
 
 void disp_ans(void)
 {
-	uint8_t count1;
-	char str1[200];
-	count1 = sprintf(str1,"%d,%d,%d\r",M3.HSpeed,driver_Data1,driver_Data0);//,driverTGL*100+400);//,buff_reply);
-			
-	for (uint8_t i=0;i<count1;i++)
-	{
-		usart_putchar(&USARTE0,str1[i]);
-	}
+			//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+			LCDGotoXY(0,0);
+			//LCDStringRam("salam");
+			sprintf(str,"Hall: %1d",buff_reply);
+			LCDStringRam(str);
+			LCDGotoXY(0,1);
+			sprintf(str,"ENC: %1d",M3.Speed);
+			LCDStringRam(str);
+			LCDGotoXY(9,1);
+			sprintf(str,"H: %1d",reply2);
+			LCDStringRam(str);
+	
+	//char buf_test[5] ={1,2,3,4,5};
+	//for (uint8_t i=0;i<5;i++)
+	//{
+		//usart_putchar(&USARTE0,buf_test[i]);
+		//}
+		
+		uint8_t count1;
+		char str1[200];
+		count1 = sprintf(str1,"%d,%d,%d,%d\r",Robot_D[RobotID].M3a,Robot_D[RobotID].M3b,driver_Data0,driver_Data1);//,driverTGL*100+400);//,buff_reply);
+		
+		for (uint8_t i=0;i<count1;i++)
+		{
+			usart_putchar(&USARTE0,str1[i]);	
+		}
+	
 }
 
 void send_ask(unsigned char ask)
-{   
-    switch(ask)
-    {
+{
+	switch(ask)
+	{
 
-    case 0:  //LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
-        usart_putchar(&USARTF0,SLAVE1_ADDRESS);
-        break;
-    case 1: // LED_White_PORT.OUTTGL = LED_White_PIN_bm;
-        usart_putchar(&USARTF0,SLAVE2_ADDRESS);
-        break;
-    case 2:  //LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
-        usart_putchar(&USARTF0,SLAVE3_ADDRESS);
-        break;
-    case 3:
-        usart_putchar(&USARTF0,SLAVE4_ADDRESS);
-        break;
-    default:
-        usart_putchar(&USARTF0,0xff);
-        break;
-    };
+		case 0:  //LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+		usart_putchar(&USARTF0,SLAVE1_ADDRESS);
+		break;
+		case 1: // LED_White_PORT.OUTTGL = LED_White_PIN_bm;
+		usart_putchar(&USARTF0,SLAVE2_ADDRESS);
+		break;
+		case 2:  //LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
+		usart_putchar(&USARTF0,SLAVE3_ADDRESS);
+		break;
+		case 3:
+		usart_putchar(&USARTF0,SLAVE4_ADDRESS);
+		break;
+		default:
+		usart_putchar(&USARTF0,0xff);
+		break;
+	};
 
 }
+
 void get_MS(char rx)
 {
 
 }
+
 int ask_cnt0=0;
 int ask_cnt1=0;
 
@@ -496,13 +506,14 @@ int buff_d_temp;
 int buff_u_temp;
 unsigned char reply2_tmp;
 
+
 ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 {
 	
 	//char buff_reply [16];
 	unsigned char data;
 	data=USARTF0_DATA;
-	
+   
 	
 
 	switch(ask_cnt0)
@@ -576,7 +587,7 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		case 8:
 		if (data=='#')
 		{
-			
+		
 			
 			switch(reply2_tmp)
 			{
@@ -586,7 +597,7 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 				
 				case 3:
 				M3.Hall=buff_reply_tmp0;
-				break;
+				break; 
 			}
 			driver_Data0=buff_p_temp;
 			driver_Data1=buff_i_temp;
@@ -606,7 +617,6 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		break;
 	}
 }
-
 
 ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
 {
@@ -693,12 +703,12 @@ ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
 				case 0:
 				M0.Hall=buff_reply_tmp1;
 				break;
-				
+							
 				case 1:
 				M1.Hall=buff_reply_tmp1;
 				break;
 			}
-			
+						
 			//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
 			buff_reply=buff_reply_tmp1;
 			reply2 = reply2_tmp;
@@ -717,46 +727,52 @@ ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
 	
 }
 
-inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,int *i)
+ISR(USARTE0_RXC_vect)
+{
+	LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+}
+
+inline int PD_CTRL (int Setpoint,int Feed_Back,int *PID_Err_past,int *d_past,float *i)
 {
 
-    Setpoint=(40*Setpoint);
-    
+	//Setpoint=(40*Setpoint);
+	
 
-    int PID_Err=Setpoint-Feed_Back;
+	int PID_Err=Setpoint-Feed_Back;
 
-	 int d=(PID_Err-(*PID_Err_past))*10 ;
-	  // d= (*d_past) +0.05*(d-(*d_past));
+	
+	int d=(PID_Err-(*PID_Err_past))*10 ;
+	// d= (*d_past) +0.05*(d-(*d_past));
 
-    d=(abs(d)<50)?0:d;
+	d=(abs(d)<50)?0:d;
 
-    d=(d>2400)?(0):d;
-    d=(d<-2400)?(0):d;
+	d=(d>2400)?(0):d;
+	d=(d<-2400)?(0):d;
 
-    int p=PID_Err*kp;
-
-
-    (*i)=(*i)+(ki*PID_Err)*.020;
+	int p=PID_Err*kp;
 
 
-     if ((*i)>120)
-      (*i)=120;
-     if ((*i)<-1200)
-      (*i)=-120;
+	(*i)=(*i)+(ki*PID_Err)*.020;
 
-    p=(p>127)?(127):p;
-    p=(p<-127)?(-127):p;
 
-    //PID_U_past=PID_U;
-    int PID_U=p+(*i)+kd*d;//(0.5)*PID_Err2_M1+(1.5)*(PID_Err1_M1+PID_Err2_M1);//+(12.5)*(float)(PID_Err2_M1-PID_Err1_M1)/10.0; //kp=0.5  kd=9
+	if ((*i)>80)
+	(*i)=80;
+	if ((*i)<-80)
+	(*i)=-80;
 
-    if(PID_U>127)
-        PID_U=127;
-    if( PID_U<-127)
-        PID_U=-127;
-    *PID_Err_past=PID_Err;
-    *d_past=d;
-    return PID_U;
-    // direction =1;
+	p=(p>127)?(127):p;
+	p=(p<-127)?(-127):p;
+
+	//PID_U_past=PID_U;
+	int PID_U=p+(*i)+kd*d;//(0.5)*PID_Err2_M1+(1.5)*(PID_Err1_M1+PID_Err2_M1);//+(12.5)*(float)(PID_Err2_M1-PID_Err1_M1)/10.0; //kp=0.5  kd=9
+
+	if(PID_U>127)
+	PID_U=127;
+	if( PID_U<-127)
+	PID_U=-127;
+	*PID_Err_past=PID_Err;
+	*d_past=d;
+	return PID_U;
+	// direction =1;
 
 }
