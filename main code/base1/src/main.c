@@ -248,12 +248,12 @@ int main (void)
 			Buf_Tx_L[7] = (buff_reply >> 8) & 0xFF;
             Buf_Tx_L[8] = M0.Speed & 0xFF;
             Buf_Tx_L[9] = (M0.Speed >> 8) & 0xFF;
-            Buf_Tx_L[10] = M1.Speed & 0xFF;
-            Buf_Tx_L[11] = (M1.Speed >> 8) & 0xFF;
+            Buf_Tx_L[10] = driver_Data1 & 0xFF;
+            Buf_Tx_L[11] =(driver_Data1 >> 8) & 0xFF;
             Buf_Tx_L[12] = M2.Speed & 0xFF;
             Buf_Tx_L[13] = (M2.Speed >> 8) & 0xFF;
-            Buf_Tx_L[14] = M3.Speed & 0xFF;
-            Buf_Tx_L[15] = (M3.Speed >> 8) & 0xFF;
+            Buf_Tx_L[14] = M3.Hall & 0xFF;
+            Buf_Tx_L[15] = (M3.Hall >> 8) & 0xFF;
             Buf_Tx_L[16] = adc >> 4;
             
 
@@ -457,7 +457,7 @@ void disp_ans(void)
 		
 		uint8_t count1;
 		char str1[200];
-		count1 = sprintf(str1,"%d,%d,%d,%d\r",Robot_D[RobotID].M3a,Robot_D[RobotID].M3b,driver_Data0,driver_Data1);//,driverTGL*100+400);//,buff_reply);
+		count1 = sprintf(str1,"%d,%d,%d\r",M3.Hall,driver_Data0,driver_Data1);//,driverTGL*100+400);//,buff_reply);
 		
 		for (uint8_t i=0;i<count1;i++)
 		{
