@@ -521,7 +521,7 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		case 0:
 		if (data== '*')
 		{
-			LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+			
 			ask_cnt0++;
 		}
 		break;
@@ -538,30 +538,30 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		ask_cnt0++;
 		break;
 
-		case 3:
-		reply2_tmp = data;
-		ask_cnt0++;
-		break;
-
-		case 4:
-		buff_p_temp=data&0x0ff;
-		ask_cnt0++;
-		break;
-		
-		case 5:
-		buff_p_temp|=(data<<8)&0x0ff00;
-		ask_cnt0++;
-		break;
-		
-		case 6:
-		buff_i_temp=data&0x0ff;
-		ask_cnt0++;
-		break;
-		
-		case 7:
-		buff_i_temp|=(data<<8)&0x0ff00;
-		ask_cnt0++;
-		break;
+		//case 3:
+		//reply2_tmp = data;
+		//ask_cnt0++;
+		//break;
+//
+		//case 4:
+		//buff_p_temp=data&0x0ff;
+		//ask_cnt0++;
+		//break;
+		//
+		//case 5:
+		//buff_p_temp|=(data<<8)&0x0ff00;
+		//ask_cnt0++;
+		//break;
+		//
+		//case 6:
+		//buff_i_temp=data&0x0ff;
+		//ask_cnt0++;
+		//break;
+		//
+		//case 7:
+		//buff_i_temp|=(data<<8)&0x0ff00;
+		//ask_cnt0++;
+		//break;
 		
 		//case 8:
 		//buff_d_temp=data&0x0ff;
@@ -584,25 +584,27 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		//break;
 
 
-		case 8:
+		case 3:
 		if (data=='#')
 		{
 		
+			//LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
+			//switch(reply2_tmp)
+			//{
+				//case 2:
+				//M2.Hall=buff_reply_tmp0;
+				//break;
+				//
+				//case 3:
+				//M3.Hall=buff_reply_tmp0;
+				//break; 
+			//}
+			//driver_Data0=buff_p_temp;
+			//driver_Data1=buff_i_temp;
+			//buff_reply=buff_reply_tmp0;
+			//reply2 = reply2_tmp;
 			
-			switch(reply2_tmp)
-			{
-				case 2:
-				M2.Hall=buff_reply_tmp0;
-				break;
-				
-				case 3:
-				M3.Hall=buff_reply_tmp0;
-				break; 
-			}
-			driver_Data0=buff_p_temp;
-			driver_Data1=buff_i_temp;
-			buff_reply=buff_reply_tmp0;
-			reply2 = reply2_tmp;
+			M3.Hall=buff_reply_tmp0;
 			
 			//buff_p = buff_p_temp;
 			//buff_i = buff_i_temp;
