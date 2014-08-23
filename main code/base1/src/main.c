@@ -170,8 +170,9 @@ int main (void)
 			Robot_D[RobotID].I=65;
 			Robot_D[RobotID].D=05;
 			
-			//Robot_D[RobotID].M3b=0xff;
-			//Robot_D[RobotID].M3a=0x0f;
+			//int RRpm=-65000;
+			//Robot_D[RobotID].M3b=RRpm & 0x00ff;
+			//Robot_D[RobotID].M3a=(RRpm>>8) & 0x00ff;
 			
 			char send_buff;
             usart_putchar(&USARTF0,'*');
@@ -187,7 +188,6 @@ int main (void)
 			usart_putchar(&USARTF0,Robot_D[RobotID].P);
 			usart_putchar(&USARTF0,Robot_D[RobotID].I);
 			usart_putchar(&USARTF0,Robot_D[RobotID].D);
-			
 			switch (driverTGL)
 			{
 				case 0:
@@ -238,14 +238,14 @@ int main (void)
             //Buf_Tx_L[5] = (((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8))*40)  >> 8) & 0x0FF;
 			//Buf_Tx_L[6] = ((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)& 0x0FF;
 			//Buf_Tx_L[7] = (((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)  >> 8) & 0x0FF;
-			Buf_Tx_L[0] = buff_reply & 0xFF;
-			Buf_Tx_L[1] = (buff_reply >> 8) & 0xFF;
-			Buf_Tx_L[2] = buff_reply & 0xFF;
-			Buf_Tx_L[3] = (buff_reply >> 8) & 0xFF;
-			Buf_Tx_L[4] = buff_reply & 0xFF;
-			Buf_Tx_L[5] = (buff_reply >> 8) & 0xFF;
-			Buf_Tx_L[6] = buff_reply & 0xFF;
-			Buf_Tx_L[7] = (buff_reply >> 8) & 0xFF;
+			Buf_Tx_L[0] = Robot_D[RobotID].M0b;
+			Buf_Tx_L[1] = Robot_D[RobotID].M0a;
+			Buf_Tx_L[2] = Robot_D[RobotID].M1b;
+			Buf_Tx_L[3] = Robot_D[RobotID].M1a;
+			Buf_Tx_L[4] = Robot_D[RobotID].M2b;
+			Buf_Tx_L[5] = Robot_D[RobotID].M2a;
+			Buf_Tx_L[6] = Robot_D[RobotID].M3b;
+			Buf_Tx_L[7] = Robot_D[RobotID].M3a;
             Buf_Tx_L[8] = M0.Speed & 0xFF;
             Buf_Tx_L[9] = (M0.Speed >> 8) & 0xFF;
             Buf_Tx_L[10] = driver_Data1 & 0xFF;
