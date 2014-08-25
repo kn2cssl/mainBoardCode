@@ -558,7 +558,7 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		case 4:
 		if (data=='#')
 		{
-			LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
+			//LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
 			//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
 			buff_reply=buff_reply_tmp;
 			reply2 = reply2_tmp;
@@ -653,7 +653,7 @@ ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
 		if (data=='#')
 		{
 			
-			LED_White_PORT.OUTTGL = LED_White_PIN_bm;
+			//LED_White_PORT.OUTTGL = LED_White_PIN_bm;
 			buff_reply=buff_reply_tmp;
 			reply2 = reply2_tmp;
 			//buff_p = buff_p_temp;
