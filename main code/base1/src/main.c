@@ -166,13 +166,6 @@ int main (void)
 
             ctrlflg = 0;
 
-			Robot_D[RobotID].P=15;
-			Robot_D[RobotID].I=65;
-			Robot_D[RobotID].D=05;
-			
-			//int RRpm=-65000;
-			//Robot_D[RobotID].M3b=RRpm & 0x00ff;
-			//Robot_D[RobotID].M3a=(RRpm>>8) & 0x00ff;
 			
 			char send_buff;
             usart_putchar(&USARTF0,'*');
