@@ -168,7 +168,7 @@ int main (void)
             usart_putchar(&USARTF0,M2.PWM);
             usart_putchar(&USARTF0,M3.PWM);
             send_ask(Buf_Rx_L[11]);
-            //send_ask(0);
+			//send_ask(3);
             usart_putchar(&USARTF0,'#');
             
             //Buzzer_PORT.OUTSET = Buzzer_PIN_bm;
@@ -291,9 +291,9 @@ ISR(PORTE_INT0_vect)////////////////////////////////////////PTX   IRQ Interrupt 
             Robot_D[RobotID].KCK = Buf_Rx_L[9];
             Robot_D[RobotID].CHP = Buf_Rx_L[10];
             Robot_D[RobotID].ASK = Buf_Rx_L[11];
-            Robot_D[RobotID].P = Buf_Rx_L[12];
-            Robot_D[RobotID].I = Buf_Rx_L[13];
-            Robot_D[RobotID].D = Buf_Rx_L[14];
+            Robot_D[RobotID].P = 15;//Buf_Rx_L[12];
+            Robot_D[RobotID].I = 65;//Buf_Rx_L[13];
+            Robot_D[RobotID].D = 5;//Buf_Rx_L[14];
 
         }
 
