@@ -32,6 +32,7 @@ void disp_ans(void);
 #define SLAVE4_ADDRESS    3
 
 /* Global variables */
+int pp, ii, dd;
 int flg_reply=0;
 int cnt=0;
 int flg=0;
@@ -181,16 +182,16 @@ int main (void)
 			usart_putchar(&USARTF0,Robot_D[RobotID].P);
 			usart_putchar(&USARTF0,Robot_D[RobotID].I);
 			usart_putchar(&USARTF0,Robot_D[RobotID].D);
-			switch (driverTGL)
-			{
-				case 0:
+			//switch (driverTGL)
+			//{
+				//case 0:
 				usart_putchar(&USARTF0,'#');
-				break;
+				//break;
 				
-				case 1:
-				usart_putchar(&USARTF0,'$');
-				break;
-			}
+				//case 1:
+				//usart_putchar(&USARTF0,'$');
+				//break;
+			//}
             
 			
             adc = adc_get_unsigned_result(&ADCA,ADC_CH0);
@@ -450,7 +451,7 @@ void disp_ans(void)
 		
 		uint8_t count1;
 		char str1[200];
-		count1 = sprintf(str1,"%d,%d,%d\r",M3.Hall,driver_Data0,driver_Data1);//,driverTGL*100+400);//,buff_reply);
+		count1 = sprintf(str1,"%d,%d,%d,%d,%d,%d\r",M3.Hall,pp,ii,dd,driver_Data0,driver_Data1);//,driverTGL*100+400);//,buff_reply);
 		
 		for (uint8_t i=0;i<count1;i++)
 		{
@@ -530,83 +531,60 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		//master=data;
 		ask_cnt0++;
 		break;
-
-		//case 3:
-		//reply2_tmp = data;
-		//ask_cnt0++;
-		//break;
-//
-		//case 4:
-		//buff_p_temp=data&0x0ff;
-		//ask_cnt0++;
-		//break;
-		//
-		//case 5:
-		//buff_p_temp|=(data<<8)&0x0ff00;
-		//ask_cnt0++;
-		//break;
-		//
-		//case 6:
-		//buff_i_temp=data&0x0ff;
-		//ask_cnt0++;
-		//break;
-		//
-		//case 7:
-		//buff_i_temp|=(data<<8)&0x0ff00;
-		//ask_cnt0++;
-		//break;
 		
-		//case 8:
-		//buff_d_temp=data&0x0ff;
-		//ask_cnt++;
-		//break;
-		//
-		//case 9:
-		//buff_d_temp|=(data<<8)&0x0ff00;
-		//ask_cnt++;
-		//break;
-		//
-		//case 10:
-		//buff_u_temp=data&0x0ff;
-		//ask_cnt++;
-		//break;
-		//
-		//case 11:
-		//buff_u_temp|=(data<<8)&0x0ff00;
-		//ask_cnt++;
-		//break;
-
-
 		case 3:
+		pp=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
+		break;
+
+		case 4:
+		pp|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
+		break;
+		
+		case 5:
+		ii=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
+		break;
+
+		case 6:
+		ii|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
+		break;
+		
+		case 7:
+		dd=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
+		break;
+
+		case 8:
+		dd|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
+		break;
+
+		case 9:
 		if (data=='#')
 		{
-		
-			//LED_Red_PORT.OUTTGL = LED_Red_PIN_bm;
-			//switch(reply2_tmp)
-			//{
-				//case 2:
-				//M2.Hall=buff_reply_tmp0;
-				//break;
-				//
-				//case 3:
-				//M3.Hall=buff_reply_tmp0;
-				//break; 
-			//}
-			//driver_Data0=buff_p_temp;
-			//driver_Data1=buff_i_temp;
-			//buff_reply=buff_reply_tmp0;
-			//reply2 = reply2_tmp;
+
 			
 			M3.Hall=buff_reply_tmp0;
-			
-			//buff_p = buff_p_temp;
-			//buff_i = buff_i_temp;
-			//buff_d = buff_d_temp;
-			//buff_u = buff_u_temp;
+
 
 
 			//flg_reply=0;
 			ask_cnt0=0;
+		}
+		else
+		{
+			pp=6666;
+			ii=6666;
+			dd=6666;
 		}
 		ask_cnt0=0;
 		break;
