@@ -139,8 +139,12 @@ int main (void)
     NRF24L01_L_CE_LOW;
     if (RobotID < 3)
         NRF24L01_L_Init_milad(_TX_MODE, _CH_0, _2Mbps, Address, _Address_Width, _Buffer_Size, RF_PWR_MAX);
-    else
+    else if(RobotID > 2 && RobotID < 6)
         NRF24L01_L_Init_milad(_TX_MODE, _CH_1, _2Mbps, Address, _Address_Width, _Buffer_Size, RF_PWR_MAX);
+	else if (RobotID > 5 && RobotID < 9)
+		NRF24L01_L_Init_milad(_TX_MODE, _CH_2, _2Mbps, Address, _Address_Width, _Buffer_Size, RF_PWR_MAX);
+	else
+		NRF24L01_L_Init_milad(_TX_MODE, _CH_3, _2Mbps, Address, _Address_Width, _Buffer_Size, RF_PWR_MAX);
     NRF24L01_L_WriteReg(W_REGISTER | DYNPD,0x01);
     NRF24L01_L_WriteReg(W_REGISTER | FEATURE,0x06);
 
@@ -182,18 +186,20 @@ int main (void)
 			usart_putchar(&USARTF0,Robot_D[RobotID].M3b);//M3.PWM);
 			usart_putchar(&USARTF0,Robot_D[RobotID].P);
 			usart_putchar(&USARTF0,Robot_D[RobotID].I);
-			usart_putchar(&USARTF0,Robot_D[RobotID].D);
-			//switch (driverTGL)
-			//{
-				//case 0:
+			usart_putchar(&USARTF0,Robot_D[RobotID].D);	
+			
+			
+			if ((Robot_D[RobotID].M0a == 1) && (Robot_D[RobotID].M0b == 2) && (Robot_D[RobotID].M1a==3) && (Robot_D[RobotID].M1b == 4)) 
+			{
+				usart_putchar(&USARTF0,'$');
+			}
+			else
+			{
 				usart_putchar(&USARTF0,'#');
-				//break;
+			}
 				
-				//case 1:
-				//usart_putchar(&USARTF0,'$');
-				//break;
-			//}
-            
+
+
 			
             adc = adc_get_unsigned_result(&ADCA,ADC_CH0);
 
