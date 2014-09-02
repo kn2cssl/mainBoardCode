@@ -11,8 +11,9 @@
  */
 #include <asf.h>
 #include <stdlib.h>
-#include <util/delay.h>
 #define F_CPU 32000000UL
+#include <util/delay.h>
+
 
 #include "lcd.h"
 #include "initialize.h"
@@ -171,14 +172,14 @@ int main (void)
 			char send_buff;
             usart_putchar(&USARTF0,'*');
             usart_putchar(&USARTF0,'~');
-			usart_putchar(&USARTF0,Robot_D[RobotID].M0b);//M3.PWM);
 			usart_putchar(&USARTF0,Robot_D[RobotID].M0a);//M3.PWM);
-			usart_putchar(&USARTF0,Robot_D[RobotID].M1b);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M0b);//M3.PWM);
 			usart_putchar(&USARTF0,Robot_D[RobotID].M1a);//M3.PWM);
-			usart_putchar(&USARTF0,Robot_D[RobotID].M2b);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M1b);//M3.PWM);
 			usart_putchar(&USARTF0,Robot_D[RobotID].M2a);//M3.PWM);
-			usart_putchar(&USARTF0,Robot_D[RobotID].M3b);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M2b);//M3.PWM);
 			usart_putchar(&USARTF0,Robot_D[RobotID].M3a);//M3.PWM);
+			usart_putchar(&USARTF0,Robot_D[RobotID].M3b);//M3.PWM);
 			usart_putchar(&USARTF0,Robot_D[RobotID].P);
 			usart_putchar(&USARTF0,Robot_D[RobotID].I);
 			usart_putchar(&USARTF0,Robot_D[RobotID].D);
@@ -232,14 +233,14 @@ int main (void)
             //Buf_Tx_L[5] = (((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8))*40)  >> 8) & 0x0FF;
 			//Buf_Tx_L[6] = ((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)& 0x0FF;
 			//Buf_Tx_L[7] = (((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8))*40)  >> 8) & 0x0FF;
-			Buf_Tx_L[0] = Robot_D[RobotID].M0b;
-			Buf_Tx_L[1] = Robot_D[RobotID].M0a;
-			Buf_Tx_L[2] = Robot_D[RobotID].M1b;
-			Buf_Tx_L[3] = Robot_D[RobotID].M1a;
-			Buf_Tx_L[4] = Robot_D[RobotID].M2b;
-			Buf_Tx_L[5] = Robot_D[RobotID].M2a;
-			Buf_Tx_L[6] = Robot_D[RobotID].M3b;
-			Buf_Tx_L[7] = Robot_D[RobotID].M3a;
+			Buf_Tx_L[0] = Robot_D[RobotID].M0a;
+			Buf_Tx_L[1] = Robot_D[RobotID].M0b;
+			Buf_Tx_L[2] = Robot_D[RobotID].M1a;
+			Buf_Tx_L[3] = Robot_D[RobotID].M1b;
+			Buf_Tx_L[4] = Robot_D[RobotID].M2a;
+			Buf_Tx_L[5] = Robot_D[RobotID].M2b;
+			Buf_Tx_L[6] = Robot_D[RobotID].M3a;
+			Buf_Tx_L[7] = Robot_D[RobotID].M3b;
             Buf_Tx_L[8] = M0.Speed & 0xFF;
             Buf_Tx_L[9] = (M0.Speed >> 8) & 0xFF;
             Buf_Tx_L[10] = driver_Data1 & 0xFF;
@@ -451,8 +452,9 @@ void disp_ans(void)
 		
 		uint8_t count1;
 		char str1[200];
-		count1 = sprintf(str1,"%d,%d,%d,%d,%d,%d\r",M3.Hall,pp,ii,dd,driver_Data0,driver_Data1);//,driverTGL*100+400);//,buff_reply);
-		
+		int mo3 =(Robot_D[RobotID].M3b & 0x0ff) | ((Robot_D[RobotID].M3a>>8) & 0xff00);
+		count1 = sprintf(str1,"%d,%d,%d,%d,%d,%d\r",M3.Hall,pp,ii,dd,driver_Data0,mo3);//,driverTGL*100+400);//,buff_reply);
+																				  
 		for (uint8_t i=0;i<count1;i++)
 		{
 			usart_putchar(&USARTE0,str1[i]);	
@@ -601,100 +603,181 @@ ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
 	
 
 
-	switch(ask_cnt1)
+	//switch(ask_cnt1)
+	//{
+		//case 0:
+		//if (data== '*')
+		//{
+			//LED_Red_PORT.OUTTGL=LED_Red_PIN_bm;
+			//ask_cnt1++;
+		//}
+		//break;
+//
+		//case 1:
+		//buff_reply_tmp1=data&0x0ff;
+		//ask_cnt1++;
+		//break;
+//
+		//case 2:
+		//buff_reply_tmp1|=(data<<8)&0x0ff00;
+		//ask_cnt1++;
+		//break;
+//
+		//case 3:
+		//reply2_tmp = data;
+		//ask_cnt1++;
+		//break;
+//
+		////case 4:
+		////buff_p_temp=data&0x0ff;
+		////ask_cnt++;
+		////break;
+		////
+		////case 5:
+		////buff_p_temp|=(data<<8)&0x0ff00;
+		////ask_cnt++;
+		////break;
+		////
+		////case 6:
+		////buff_i_temp=data&0x0ff;
+		////ask_cnt++;
+		////break;
+		////
+		////case 7:
+		////buff_i_temp|=(data<<8)&0x0ff00;
+		////ask_cnt++;
+		////break;
+		////
+		////case 8:
+		////buff_d_temp=data&0x0ff;
+		////ask_cnt++;
+		////break;
+		////
+		////case 9:
+		////buff_d_temp|=(data<<8)&0x0ff00;
+		////ask_cnt++;
+		////break;
+		////
+		////case 10:
+		////buff_u_temp=data&0x0ff;
+		////ask_cnt++;
+		////break;
+		////
+		////case 11:
+		////buff_u_temp|=(data<<8)&0x0ff00;
+		////ask_cnt++;
+		////break;
+//
+//
+		//case 4:
+		//if (data=='#')
+		//{
+//
+			//switch(reply2_tmp)
+			//{
+				//case 0:
+				//M0.Hall=buff_reply_tmp1;
+				//break;
+							//
+				//case 1:
+				//M1.Hall=buff_reply_tmp1;
+				//break;
+			//}
+						//
+			////LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
+			//buff_reply=buff_reply_tmp1;
+			//reply2 = reply2_tmp;
+			////buff_p = buff_p_temp;
+			////buff_i = buff_i_temp;
+			////buff_d = buff_d_temp;
+			////buff_u = buff_u_temp;
+//
+//
+			////flg_reply=0;
+			//ask_cnt1=0;
+		//}
+		//ask_cnt1=0;
+		//break;
+	//}
+	
+	
+	switch(ask_cnt0)
 	{
 		case 0:
 		if (data== '*')
 		{
-			LED_Red_PORT.OUTTGL=LED_Red_PIN_bm;
-			ask_cnt1++;
+			
+			ask_cnt0++;
 		}
 		break;
 
 		case 1:
-		buff_reply_tmp1=data&0x0ff;
-		ask_cnt1++;
+		buff_reply_tmp0=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
 		break;
 
 		case 2:
-		buff_reply_tmp1|=(data<<8)&0x0ff00;
-		ask_cnt1++;
+		buff_reply_tmp0|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
 		break;
-
+		
 		case 3:
-		reply2_tmp = data;
-		ask_cnt1++;
+		pp=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
 		break;
-
-		//case 4:
-		//buff_p_temp=data&0x0ff;
-		//ask_cnt++;
-		//break;
-		//
-		//case 5:
-		//buff_p_temp|=(data<<8)&0x0ff00;
-		//ask_cnt++;
-		//break;
-		//
-		//case 6:
-		//buff_i_temp=data&0x0ff;
-		//ask_cnt++;
-		//break;
-		//
-		//case 7:
-		//buff_i_temp|=(data<<8)&0x0ff00;
-		//ask_cnt++;
-		//break;
-		//
-		//case 8:
-		//buff_d_temp=data&0x0ff;
-		//ask_cnt++;
-		//break;
-		//
-		//case 9:
-		//buff_d_temp|=(data<<8)&0x0ff00;
-		//ask_cnt++;
-		//break;
-		//
-		//case 10:
-		//buff_u_temp=data&0x0ff;
-		//ask_cnt++;
-		//break;
-		//
-		//case 11:
-		//buff_u_temp|=(data<<8)&0x0ff00;
-		//ask_cnt++;
-		//break;
-
 
 		case 4:
+		pp|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
+		break;
+		
+		case 5:
+		ii=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
+		break;
+
+		case 6:
+		ii|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
+		break;
+		
+		case 7:
+		dd=data&0x0ff;
+		//tmp=data;
+		ask_cnt0++;
+		break;
+
+		case 8:
+		dd|=(data<<8)&0x0ff00;
+		//master=data;
+		ask_cnt0++;
+		break;
+
+		case 9:
 		if (data=='#')
 		{
 
-			switch(reply2_tmp)
-			{
-				case 0:
-				M0.Hall=buff_reply_tmp1;
-				break;
-							
-				case 1:
-				M1.Hall=buff_reply_tmp1;
-				break;
-			}
-						
-			//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
-			buff_reply=buff_reply_tmp1;
-			reply2 = reply2_tmp;
-			//buff_p = buff_p_temp;
-			//buff_i = buff_i_temp;
-			//buff_d = buff_d_temp;
-			//buff_u = buff_u_temp;
+			
+			M3.Hall=buff_reply_tmp0;
+
 
 
 			//flg_reply=0;
-			ask_cnt1=0;
+			ask_cnt0=0;
 		}
-		ask_cnt1=0;
+		else
+		{
+			pp=6666;
+			ii=6666;
+			dd=6666;
+		}
+		ask_cnt0=0;
 		break;
 	}
 	
