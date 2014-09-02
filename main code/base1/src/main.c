@@ -142,6 +142,8 @@ int main (void)
     while(1)
     {   
         asm("wdr");
+		int curr_alarm=(PORTH_IN&PIN6_bm)>>6;
+
         if (ctrlflg)
         {
             M0.Speed_past = M0.Speed; M0.Speed = M0.Encoder*7.5; M0.Encoder = 0;
@@ -156,12 +158,21 @@ int main (void)
             ki = (float)Robot_D[RobotID].I/100.0;
             kd = (float)Robot_D[RobotID].D/100.0;
             ctrlflg = 0;
-            M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.Speed,&M0.Err,&M0.d,&M0.i);
+			if (curr_alarm)   /////////  alarm of cuurent ov
+			{
+				M0.PWM=0;
+				M1.PWM=0;
+				M2.PWM=0;
+				M3.PWM=0;
+			}
+			else
+            {M0.PWM=PD_CTRL(Robot_D[RobotID].M0b|(Robot_D[RobotID].M0a<<8),M0.Speed,&M0.Err,&M0.d,&M0.i);
             M1.PWM=PD_CTRL((Robot_D[RobotID].M1b|(Robot_D[RobotID].M1a<<8)),M1.Speed,&M1.Err,&M1.d,&M1.i);
             M2.PWM=PD_CTRL((Robot_D[RobotID].M2b|(Robot_D[RobotID].M2a<<8)),M2.Speed,&M2.Err,&M2.d,&M2.i);
-            M3.PWM=PD_CTRL((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8)),M3.Speed,&M3.Err,&M3.d,&M3.i);
+            M3.PWM=PD_CTRL((Robot_D[RobotID].M3b|(Robot_D[RobotID].M3a<<8)),M3.Speed,&M3.Err,&M3.d,&M3.i);}
             
-            usart_putchar(&USARTF0,'*');
+            
+			usart_putchar(&USARTF0,'*');
             usart_putchar(&USARTF0,'~');
             usart_putchar(&USARTF0,M0.PWM);
             usart_putchar(&USARTF0,M1.PWM);
