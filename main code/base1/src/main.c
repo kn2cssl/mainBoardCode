@@ -33,20 +33,18 @@ void disp_ans(void);
 #define SLAVE4_ADDRESS    3
 
 /* Global variables */
-int pp, ii, dd;
 int flg_reply=0;
 int cnt=0;
 int flg=0;
 int flg1=0;
 int adc =0;
 int count=0;
-int tmp;
-int master;
-char rx[15];
-char buff[2];
 int driverTGL;
 int free_wheel=0;
+int Test_Driver_Data0 , Test_Driver_Data1 , Test_Driver_Data2 , Test_Driver_Data3 ;
 char Test_RPM = true;
+char rx[15];
+char buff[2];
 
 int flg_off;
 char str[40];
@@ -77,8 +75,8 @@ uint16_t LED_Red_Speed,LED_Green_Speed,LED_White_Speed,Buzzer_Speed;
 
 int Seg[18] = {Segment_0,Segment_1,Segment_2,Segment_3,Segment_4,Segment_5,Segment_6,Segment_7,Segment_8,Segment_9,
                Segment_10,Segment_11,Segment_12,Segment_13,Segment_14,Segment_15,Segment_Dash};
-unsigned char Buf_Rx_L[_Buffer_Size] ;//= "00000000000000000000000000000000";
-char Buf_Tx_L[_Buffer_Size] ;//= "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+unsigned char Buf_Rx_L[_Buffer_Size] ;
+char Buf_Tx_L[_Buffer_Size] ;
 char Address[_Address_Width] = { 0x11, 0x22, 0x33, 0x44, 0x55};//pipe0 {0xE7,0xE7,0xE7,0xE7,0xE7};////
 
 float kp,ki,kd;	
@@ -98,7 +96,6 @@ struct _Motor_Param
     char PWM;
 	int RPM;
 };
-int driver_Data0,driver_Data1;
 typedef	struct _Motor_Param Motor_Param;
 Motor_Param M0,M1,M2,M3,MH;
 int main (void)
@@ -250,14 +247,14 @@ int main (void)
 			Buf_Tx_L[5] = Robot_D[RobotID].M2b;
 			Buf_Tx_L[6] = Robot_D[RobotID].M3a;
 			Buf_Tx_L[7] = Robot_D[RobotID].M3b;
-            Buf_Tx_L[8] = M0.Speed & 0xFF;
-            Buf_Tx_L[9] = (M0.Speed >> 8) & 0xFF;
-            Buf_Tx_L[10] = driver_Data1 & 0xFF;
-            Buf_Tx_L[11] =(driver_Data1 >> 8) & 0xFF;
-            Buf_Tx_L[12] = M2.Speed & 0xFF;
-            Buf_Tx_L[13] = (M2.Speed >> 8) & 0xFF;
-            Buf_Tx_L[14] = M3.Hall & 0xFF;
-            Buf_Tx_L[15] = (M3.Hall >> 8) & 0xFF;
+            Buf_Tx_L[8] = Test_Driver_Data0 & 0xFF;
+            Buf_Tx_L[9] = (Test_Driver_Data0 >> 8) & 0xFF;
+            Buf_Tx_L[10] = Test_Driver_Data1 & 0xFF;
+            Buf_Tx_L[11] = (Test_Driver_Data1 >> 8) & 0xFF;
+            Buf_Tx_L[12] = Test_Driver_Data2 & 0xFF;
+            Buf_Tx_L[13] = (Test_Driver_Data2 >> 8) & 0xFF;
+            Buf_Tx_L[14] = Test_Driver_Data3 & 0xFF;
+            Buf_Tx_L[15] = (Test_Driver_Data3 >> 8) & 0xFF;
             Buf_Tx_L[16] = adc >> 4;
             
 
@@ -462,8 +459,7 @@ void disp_ans(void)
 		
 		uint8_t count1;
 		char str1[200];
-		int mo3 =(Robot_D[RobotID].M3b & 0x0ff) | ((Robot_D[RobotID].M3a>>8) & 0xff00);
-		count1 = sprintf(str1,"%d,%d,%d,%d,%d,%d\r",M3.Hall,pp,ii,dd,driver_Data0,mo3);//,driverTGL*100+400);//,buff_reply);
+		count1 = sprintf(str1,"%d,%d,%d,%d\r",Test_Driver_Data0,Test_Driver_Data1,Test_Driver_Data2,Test_Driver_Data3);
 																				  
 		for (uint8_t i=0;i<count1;i++)
 		{
@@ -543,49 +539,41 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 
 		case 1:
 		F0_buff_tmp0=data&0x0ff;
-		//tmp=data;
 		ask_cnt0++;
 		break;
 
 		case 2:
 		F0_buff_tmp0|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt0++;
 		break;
 		
 		case 3:
 		F0_buff_tmp1=data&0x0ff;
-		//tmp=data;
 		ask_cnt0++;
 		break;
 
 		case 4:
 		F0_buff_tmp1|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt0++;
 		break;
 		
 		case 5:
 		F0_buff_tmp2=data&0x0ff;
-		//tmp=data;
 		ask_cnt0++;
 		break;
 
 		case 6:
 		F0_buff_tmp2|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt0++;
 		break;
 		
 		case 7:
 		F0_buff_tmp3=data&0x0ff;
-		//tmp=data;
 		ask_cnt0++;
 		break;
 
 		case 8:
 		F0_buff_tmp3|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt0++;
 		break;
 
@@ -594,10 +582,10 @@ ISR(USARTF0_RXC_vect)        ///////////Driver M.2  &  M.3
 		{
 
 			
-			M3.Hall=F0_buff_tmp0;
-			pp=F0_buff_tmp1;
-			ii=F0_buff_tmp2;
-			dd=F0_buff_tmp3;
+			Test_Driver_Data0=F0_buff_tmp0;
+			Test_Driver_Data1=F0_buff_tmp1;
+			Test_Driver_Data2=F0_buff_tmp2;
+			Test_Driver_Data3=F0_buff_tmp3;
 
 			ask_cnt0=0;
 		}
@@ -623,49 +611,41 @@ ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
 
 		case 1:
 		F1_buff_tmp0=data&0x0ff;
-		//tmp=data;
 		ask_cnt1++;
 		break;
 
 		case 2:
 		F1_buff_tmp0|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt1++;
 		break;
 		
 		case 3:
 		F1_buff_tmp1=data&0x0ff;
-		//tmp=data;
 		ask_cnt1++;
 		break;
 
 		case 4:
 		F1_buff_tmp1|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt1++;
 		break;
 		
 		case 5:
 		F1_buff_tmp2=data&0x0ff;
-		//tmp=data;
 		ask_cnt1++;
 		break;
 
 		case 6:
 		F1_buff_tmp2|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt1++;
 		break;
 		
 		case 7:
 		F1_buff_tmp3=data&0x0ff;
-		//tmp=data;
 		ask_cnt1++;
 		break;
 
 		case 8:
 		F1_buff_tmp3|=(data<<8)&0x0ff00;
-		//master=data;
 		ask_cnt1++;
 		break;
 
@@ -674,12 +654,11 @@ ISR(USARTF1_RXC_vect)   ///////////// Driver  M.0  &  M.1
 		{
 
 			
-			M3.Hall=F1_buff_tmp0;
-			pp = F1_buff_tmp1;
-			ii = F1_buff_tmp2;
-			dd = F1_buff_tmp3;
-
-			//flg_reply=0;
+			Test_Driver_Data0=F0_buff_tmp0;
+			Test_Driver_Data1=F0_buff_tmp1;
+			Test_Driver_Data2=F0_buff_tmp2;
+			Test_Driver_Data3=F0_buff_tmp3;
+			
 			ask_cnt1=0;
 		}
 
