@@ -473,7 +473,7 @@ ISR(PORTK_INT0_vect)
 	
 }
 
-void disp_ans(void)
+void disp_ans(void) 
 {
 			//LED_Green_PORT.OUTTGL = LED_Green_PIN_bm;
 			LCDGotoXY(0,0);
